@@ -1,0 +1,252 @@
+<?php
+require_once "./php/db_connect.php";
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>BABY NAME SURVEY</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom fonts for this template -->
+  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <!-- Custom styles for this template -->
+  <link href="css/clean-blog.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <!--<!-- Navigation 
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Favorite Baby Name</a>
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        Menu
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="about.html">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="post.html">Sample Post</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="contact.html">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <header class="masthead" style="background-image: url('img/baby_img.jpg')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <div class="site-heading">
+            <h1>Baby Name Survey</h1>
+            <span class="subheading"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+    
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <div class="post-preview">
+          
+            <h2 class="post-title">
+             Welcome to The Baby Name Survey
+            </h2>
+            
+       <?php
+$name_err=$gender_err="";
+if($_SERVER["REQUEST_METHOD"]=="POST"){//i saw this online and decided to use it rather the $_POST['submit'] because this actually checks the form for a submission
+if(empty($_POST["name"])){
+    $name_err= "Please enter a name";// if the input for the name section it will send out an error code with this response
+        
+}else{
+      $naam= input_fix($_POST["name"]);//this sends the name to be validated in the function below
+}
+    if(empty($_POST["gender"])){
+        $gender_err="Please enter a gender";//if the button for gender is not pressed it will send out this error code
+    }
+    else{
+        $gender =input_fix($_POST["gender"]);//sends to function to be validated
+    }
+if(!empty($naam)){
+    $naam =ucfirst(strtolower($naam));//making it look nice
+    $query_form= "SELECT * FROM BABYNAMES WHERE `name` = '" . $naam . "' AND `gender` = '" . $gender . "'";//declaring a variable for selecting a name from the table
+    $result=$db->query($query_form);//declaring a variable equal to the accessing table variable connecting to the db
+    $row=$result->fetch_assoc();//goes row by row
+    $name_row =$row['name'];//this will populate all the names in the name row
+    $gender_row=$row['gender'];//this will populate all the genders in the gender row
+    $count_row =$row['count'];//this will populate all the counts in the count row
+
+if($name_row === $naam){
+    $add_count = "UPDATE `BABYNAMES` set `count` = `count` + 1 WHERE `name` ='" . $name_row."';";//if the name inputted is the same as a name in the table it will update its count
+    $count_update = $db->query($add_count);
+}else{
+    $new_name="INSERT INTO BABYNAMES (`name`, `gender`, `count`) VALUES ('" . $naam . "','" . $gender . "', '1')";//if the name doesnt already match one in the table it will insert it here
+    $add_new_name = $db->query($new_name);
+    
+    echo "<meta http-equiv='refresh' content ='0'>";//refreshes page
+    
+}
+    
+}}
+function input_fix($input){//this function removes all unneccessary characters such as spaces or slashes
+    $input=trim($input);
+    $input=stripslashes($input);
+    $input =htmlspecialchars($input);
+    return $input;
+}
+?>
+
+<form id="baby" method= "post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>"> <!--this is where the input code starts it. The php is to display the content on the same page-->
+    <fieldset>
+        <label>Please Select a gender</label>
+            <div>
+    <input type="radio" name="gender" value="M" required/><!--Boy input-->   
+    <label for="boy">Male</label>
+    <input type="radio" name = "gender" value="F" required/><!--Female input-->
+    <label for="girl">Female</label>
+    <span class ="error">* <?php echo $gender_err ?></span>
+        </div>    
+    </fieldset>
+    <label> Name: </label>
+    <input type= "text" name="name" placeholder="Baby Name" required/><!--this is where they input a name and click the submit button--->
+     <span class ="error"><?php echo $name_err ?></span>
+    <button type ="submit" name="submit1" value="submit">Submit</button>
+</form>
+<table>
+    <caption> Top 5 Boy Names</caption>
+    <thead>
+    <tr>
+        <th>Ranking</th>
+        <th>Name</th>
+        <th> Votes</th>
+    
+        </tr>
+    </thead>
+    <tbody>
+    <?php
+    $male_query= "SELECT * FROM `BABYNAMES` WHERE `gender` = 'M' ORDER BY `count` DESC LIMIT 5";//declaring a variable to select a male name in the file and it will descend with a limit of 5
+    $male_row1= $db->query($male_query);//accessing the db and selecting each name that is male
+    $male_i = 1;
+        
+    foreach ($male_row1 as $result1)///for each variable in male row it will be placed in array result2
+    {
+        $male_name = $result1['name'];
+        $male_count = $result1['count'];
+        echo '<tr>
+        <td>' . $male_i++ . '</td>
+        <td>' . $result1['name'] . '</td>
+        <td>' . $result1['count'] . '</td>
+              </tr>';
+    }
+        ?>
+    </tbody>
+        </table>
+        
+<table>
+    <caption> Top 5 Girl Names</caption>
+    <thead>
+        <tr>
+        <th>Ranking</th>
+        <th>Name</th>
+        <th>Votes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        
+        $female_query="SELECT * FROM `BABYNAMES` WHERE `gender`= 'F' ORDER BY `count` DESC LIMIT 5";//declaring a variable to select a female name in the file and it will descend with a limit of 5
+        $female_row = $db->query($female_query);//accessing the db and selecting each name that is female
+        $female_i=1;
+        
+        foreach($female_row as $result2)///for each variable in female row it will be placed in array result2
+        {
+            $female_name = $result2['name'];
+            $female_count = $result2['count'];
+            echo '  <tr> 
+                        <td>' . $female_i++ . '</td>
+                        <td>' . $result2['name'] . '</td>
+                        <td>' . $result2['count'] . '</td>
+                        </tr>';
+                        
+        }
+        ?>
+    </tbody>
+        </table>
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <ul class="list-inline text-center">
+            <li class="list-inline-item">
+              <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+              </a>
+            </li>
+            <li class="list-inline-item">
+              <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+              </a>
+            </li>
+            <li class="list-inline-item">
+              <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+              </a>
+            </li>
+          </ul>
+          <p class="copyright text-muted">Copyright &copy; Belal Mahmood 2019</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Custom scripts for this template -->
+  <script src="js/clean-blog.min.js"></script>
+            </a>
+              </div>
+            <
+</body>
+
+</html>
